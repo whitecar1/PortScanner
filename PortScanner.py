@@ -2,12 +2,12 @@ from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
+from datetime import datetime, date
 
 import sys
 import socket
 import colored
 
-import settings
 
 class PortScanner(QMainWindow):
     def __init__(self):
@@ -38,6 +38,7 @@ class PortScanner(QMainWindow):
         self.targetEdit.setValidator(ipValidator)
         
         someIps = QRadioButton("Multiple IPs")
+        someIps.setStyleSheet("background-color: #FFFFFF;")
         someIps.setStyleSheet(f"color: {self.color}")
         
         portRange = "([0-9]|[1-9][0-9]|[1-9][0-9][0-9]|[1-9][0-9][0-9][0-9]|[1-5][0-9][0-9][0-9][0-9])"
@@ -69,14 +70,21 @@ class PortScanner(QMainWindow):
         scanningButton.setFont(QFont("Arial", 15))
         scanningButton.setStyleSheet("background-color: #FF00FF; color: #FFD700;")
         scanningButton.clicked.connect(self.startScanning)
-    
+
         self.tabs = QTabWidget()
         self.tabs.setStyleSheet("background-color: #FFFFFF; color: red;")
+
         self.tab1 = QWidget()
-        self.tab2 = QWidget()
-        self.tab3 = QWidget()
         self.tabs.addTab(self.tab1, "Target Details")
+        self.tab1_layout = QGridLayout()
+        self.tab1.setLayout(self.tab1_layout)
+
+        self.tab2 = QWidget()
         self.tabs.addTab(self.tab2, "ScanDetails")
+        self.tab2_layout = QGridLayout()
+        self.tab2.setLayout(self.tab2_layout)
+
+        self.tab3 = QWidget()
         self.tabs.addTab(self.tab3, "Results")
         
         mainLayout = QGridLayout()
@@ -137,36 +145,61 @@ class PortScanner(QMainWindow):
         
     def startScanning(self):
         #self.tabs.clear()
-        self.tab1_layout = QGridLayout()
+
         targetIP = QLabel(f"Target IPs: {self.TargetIpChanged()}")
         targetIP.setFont(QFont("Arial", 15))
         targetIP.setAlignment(Qt.AlignLeft)
+
         targetPort = QLabel(f"Target Ports: {self.TargetPortChanged()}")
         targetPort.setFont(QFont("Arial", 15))
         targetPort.setAlignment(Qt.AlignLeft)
+
         targetOs = QLabel(f"Target OS: {self.TargetOsChanged()}")
         targetOs.setFont(QFont("Arial", 15))
         targetOs.setAlignment(Qt.AlignLeft)
+
         self.tab1_layout.addWidget(targetIP, 0, 0)
         self.tab1_layout.addWidget(targetPort, 1, 0)
         self.tab1_layout.addWidget(targetOs, 2, 0)
-        self.tab1.setLayout(self.tab1_layout)
+
+        now = datetime.now().strftime("%H:%M:%S")
+        today = date.today()
+
+        timeLabel = QLabel(f"Scanning begins at {now} {today}")
+        timeLabel.setFont(QFont("Arial", 15))
+        timeLabel.setAlignment(Qt.AlignLeft)
+
+        self.tab2_layout.addWidget(timeLabel, 0, 0)
+
         self.PortScanner()
         
     def ScanPort(self, target:str, ports:str):
+        startLabel = QLabel("Port     Status")
+        startLabel.setAlignment(Qt.AlignLeft)
+        startLabel.setFont(QFont("Arial", 15))
+        self.tab2_layout.addWidget(startLabel, 1, 0)
+
         if "-" in ports:
             ports = ports.split("-")
             for port in range(int(ports[0]), int(ports[1])+1):
                 try:
                     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     sock.connect((target, port))
+                    portLabel = QLabel(f"{port}        open")
+                    portLabel.setAlignment(Qt.AlignLeft)
+                    portLabel.setFont(QFont("Arial", 15))
+                    self.tab2_layout.addWidget(portLabel)
                     sock.close()
                 except:
                     pass
         else:
             try:
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                sock.connect((target, port))
+                sock.connect((target, int(ports)))
+                portLabel = QLabel(f"{ports}        open")
+                portLabel.setAlignment(Qt.AlignLeft)
+                portLabel.setFont(QFont("Arial", 15))
+                self.tab2_layout.addWidget(portLabel)
                 sock.close()
             except:
                 pass
