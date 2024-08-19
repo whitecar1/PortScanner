@@ -104,7 +104,7 @@ class PortScanner(QMainWindow):
         helpMenu = mainMenu.addMenu("Help")
         aboutMenu = mainMenu.addMenu("About")
             
-    def validate_ip_adresses(self, targets):
+    def validate_ip_addresses(self, targets):
         pass
     
     def TargetIpChanged(self):       
