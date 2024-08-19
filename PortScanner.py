@@ -6,8 +6,6 @@ from datetime import datetime, date
 
 import sys
 import socket
-import colored
-
 
 class PortScanner(QMainWindow):
     def __init__(self):
@@ -217,5 +215,3 @@ if __name__ == "__main__":
     scanner = PortScanner()
     scanner.show()
     sys.exit(app.exec_())
-    
-TEst
