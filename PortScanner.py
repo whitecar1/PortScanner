@@ -158,7 +158,16 @@ class PortScanner(QMainWindow):
         self.PortScanner()
         
     def exitApp(self):
-        pass
+        exitBox = QMessageBox()
+        exitBox.setWindowTitle("Exit")
+        exitBox.setText("Are you really want to exit the application?")
+        exitBox.setGeometry(750, 450, 400, 300)
+        exitBox.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        exitBox.setDefaultButton(QMessageBox.No)
+        
+        result = exitBox.exec_()
+        if result == QMessageBox.Yes:
+            sys.exit(0)
         
     def ScanPort(self, target:str, ports:str):
         startLabel = QLabel("Port     Status")
