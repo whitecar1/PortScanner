@@ -39,21 +39,13 @@ class PortScanner(QMainWindow):
         portRegExp = QRegExp("^" + portRange + "\\-" + portRange + "$")
         portValidator = QRegExpValidator(portRegExp, self)
         
-        minPortLabel = QLabel("Minimal port:")
-        minPortLabel.setFont(QFont("Arial", 15))
-        minPortLabel.setStyleSheet(f"color: {self.color}")
+        targetPortLabel = QLabel("Target ports:")
+        targetPortLabel.setFont(QFont("Arial", 15))
+        targetPortLabel.setStyleSheet(f"color: {self.color}")
 
-        self.minPortEdit = QLineEdit()
-        self.minPortEdit.setStyleSheet("background-color: white; color: red;")
-        self.minPortEdit.setValidator(portValidator)
-        
-        maxPortLabel = QLabel("Maximum port:")
-        maxPortLabel.setFont(QFont("Arial", 15))
-        maxPortLabel.setStyleSheet(f"color: {self.color}")
-
-        self.maxPortEdit = QLineEdit()
-        self.maxPortEdit.setStyleSheet("background-color: white; color: red;")
-        self.maxPortEdit.setValidator(portValidator)
+        self.targetPortEdit = QLineEdit()
+        self.targetPortEdit.setStyleSheet("background-color: white; color: red;")
+        self.targetPortEdit.setValidator(portValidator)
 
         saveButton = QPushButton("Save to file")
         saveButton.setFont(QFont("Arial", 15))
@@ -64,6 +56,11 @@ class PortScanner(QMainWindow):
         scanningButton.setFont(QFont("Arial", 15))
         scanningButton.setStyleSheet("background-color: #FF00FF; color: #FFD700;")
         scanningButton.clicked.connect(self.startScanning)
+        
+        exitButton = QPushButton("Exit")
+        exitButton.setFont(QFont("Arial", 15))
+        exitButton.setStyleSheet("background-color: #CC0000; color: #FFD700;")
+        exitButton.clicked.connect(self.exitApp)
 
         self.tabs = QTabWidget()
         self.tabs.setStyleSheet("background-color: #FFFFFF; color: red;")
@@ -84,12 +81,11 @@ class PortScanner(QMainWindow):
         mainLayout = QGridLayout()
         mainLayout.addWidget(targetLabel, 0, 0)
         mainLayout.addWidget(self.targetEdit, 0, 1)
-        mainLayout.addWidget(minPortLabel, 1, 0)
-        mainLayout.addWidget(self.minPortEdit, 1, 1)
-        mainLayout.addWidget(maxPortLabel, 2, 0)
-        mainLayout.addWidget(self.maxPortEdit, 2, 1)
-        mainLayout.addWidget(saveButton, 3, 0)
-        mainLayout.addWidget(scanningButton, 3, 1)
+        mainLayout.addWidget(targetPortLabel, 1, 0)
+        mainLayout.addWidget(self.targetPortEdit, 1, 1)
+        mainLayout.addWidget(saveButton, 3, 0, 1, 1)
+        mainLayout.addWidget(scanningButton, 3, 1, 1, 1)
+        mainLayout.addWidget(exitButton, 3, 2, 1, 1)
         mainLayout.addWidget(self.tabs, 4, 0, 1, 3)
         
         centralWidget = QtWidgets.QWidget()
@@ -103,9 +99,6 @@ class PortScanner(QMainWindow):
         settingsMenu = mainMenu.addMenu("Settings")
         helpMenu = mainMenu.addMenu("Help")
         aboutMenu = mainMenu.addMenu("About")
-            
-    def validate_ip_addresses(self, targets):
-        pass
     
     def TargetIpChanged(self):       
         self.targetIP = self.targetEdit.text()
@@ -114,19 +107,13 @@ class PortScanner(QMainWindow):
         return self.targetIP
         
     def TargetPortChanged(self):
-        self.minTargetPort = self.minPortEdit.text()
-        self.maxTargetPort = self.maxPortEdit.text()
-        if self.minTargetPort == "" and self.maxTargetPort == "":
+        self.targetPort = self.targetPortEdit.text()
+        if self.targetPort == "":
             return "1-1024"
-        elif self.minTargetPort == "*" and  (self.maxTargetPort == "" or self.maxTargetPort == "*"):
-            print("1-65535")
+        elif self.targetPort == "*":
             return "1-65535"
-        elif self.minTargetPort != "" and self.maxTargetPort != "":
-            return f"{self.minTargetPort}-{self.maxTargetPort}"
-        elif self.minTargetPort != "" and self.maxTargetPort == "":
-            return self.minTargetPort
-        elif self.minTargetPort == "" and self.maxTargetPort != "":
-            return self.maxTargetPort
+        else:
+            return self.targetPort
         
     def TargetOsChanged(self):
         return "not defined"
@@ -168,6 +155,9 @@ class PortScanner(QMainWindow):
         self.tab2_layout.addWidget(timeLabel, 0, 0)
 
         self.PortScanner()
+        
+    def exitApp(self):
+        pass
         
     def ScanPort(self, target:str, ports:str):
         startLabel = QLabel("Port     Status")
