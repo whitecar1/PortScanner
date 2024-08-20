@@ -37,6 +37,7 @@ class PortScanner(QMainWindow):
         
         portRange = "([0-9]|[1-9][0-9]|[1-9][0-9][0-9]|[1-9][0-9][0-9][0-9]|[1-5][0-9][0-9][0-9][0-9])"
         portRegExp = QRegExp("^" + portRange + "\\-" + portRange + "$")
+        portRegExp_f = QRegExp("^" + portRange + " " + portRange + "$")
         portValidator = QRegExpValidator(portRegExp, self)
         
         targetPortLabel = QLabel("Target ports:")
