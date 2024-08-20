@@ -7,6 +7,7 @@ from datetime import datetime, date
 import sys
 import socket
 import time
+import datetime
 
 class PortScanner(QMainWindow):
     def __init__(self):
@@ -14,10 +15,7 @@ class PortScanner(QMainWindow):
         
         self.background = "708090"
         self.color = "#FFFF33"
-        self.targetIp = None
-        self.timer = 5
 
-        
         self.createMenus()
         self.initUI()
         
@@ -34,7 +32,7 @@ class PortScanner(QMainWindow):
         ipRegExp = QRegExp("^" + ipRange + "\\." + ipRange + "\\." + ipRange + "\\." + ipRange + "\\/" + ipRange + "$")
         ipValidator = QRegExpValidator(ipRegExp, self)
         
-        targetLabel = QLabel("IP addresses:")
+        targetLabel = QLabel("IP address:")
         targetLabel.setFont(QFont("Times", 15))
         targetLabel.setStyleSheet(f"color: {self.color};")
         targetLabel.setAlignment(Qt.AlignLeft)
@@ -42,7 +40,8 @@ class PortScanner(QMainWindow):
         self.targetEdit = QLineEdit()
         self.targetEdit.setStyleSheet(f"background-color: white; color: black;")
         self.targetEdit.setValidator(ipValidator)
-        self.targetEdit.setMaximumWidth(150)
+        self.targetEdit.setPlaceholderText("Example: 8.8.8.8")
+        self.targetEdit.setMaximumWidth(200)
 
         portRange = "([0-9]|[1-9][0-9]|[1-9][0-9][0-9]|[1-9][0-9][0-9][0-9]|[1-6][0-9][0-9][0-9][0-9])"
         portRegExp = QRegExp("^" + portRange + "-" + portRange + "$")
@@ -55,7 +54,8 @@ class PortScanner(QMainWindow):
         self.targetPortEdit = QLineEdit()
         self.targetPortEdit.setStyleSheet("background-color: white; color: black;")
         self.targetPortEdit.setValidator(portValidator)
-        self.targetPortEdit.setMaximumWidth(150)
+        self.targetPortEdit.setPlaceholderText("Example: 1-1024 or 22")
+        self.targetPortEdit.setMaximumWidth(200)
 
         targetVLayout = QGridLayout()
         targetVLayout.addWidget(targetLabel, 0, 0)
@@ -81,7 +81,6 @@ class PortScanner(QMainWindow):
         self.timerBox = QSpinBox()
         self.timerBox.setRange(5, 60)
         self.timerBox.setSingleStep(1)
-        self.timerBox.valueChanged.connect(self.TimerChanged)
 
         optionsVLayout = QGridLayout()
         optionsVLayout.addWidget(timerLabel, 0, 0, 1, 1)
@@ -96,35 +95,32 @@ class PortScanner(QMainWindow):
 
         optionsLayout.addWidget(optionsFrame, 0, 0, 1, 2)
 
+        saveButton = QPushButton("Save to file")
+        saveButton.setFont(QFont("Times", 15))
+        saveButton.setStyleSheet(f"background-color: #FF00FF; color: {self.color}")
+        saveButton.clicked.connect(self.saveToFile)
+
         scanningButton = QPushButton("Start scanning")
         scanningButton.setFont(QFont("Times", 15))
         scanningButton.setStyleSheet(f"background-color: #FF00FF; color: {self.color};")
         scanningButton.clicked.connect(self.startScanning)
 
+        exitButton = QPushButton("Exit")
+        exitButton.setFont(QFont("Times", 15))
+        exitButton.setStyleSheet(f"background-color: #FF00FF; color: {self.color}")
+        exitButton.clicked.connect(self.exitApp)
+
         self.outputText = QTextEdit()
         self.outputText.setReadOnly(True)
         self.outputText.setStyleSheet("background-color:white; color: black;")
-
-        '''
-
-        saveButton = QPushButton("Save to file")
-        saveButton.setFont(QFont("Arial", 15))
-        saveButton.setStyleSheet("background-color: #CC0000; color: #FFD700;")
-        saveButton.clicked.connect(self.saveToFile)
-
-        exitButton = QPushButton("Exit")
-        exitButton.setFont(QFont("Arial", 15))
-        exitButton.setStyleSheet("background-color: #CC0000; color: #FFD700;")
-        exitButton.clicked.connect(self.exitApp)
-
-        
-        '''
 
         mainLayout = QGridLayout()
         
         mainLayout.addLayout(targetLayout, 0, 1, 1, 2)  
         mainLayout.addLayout(optionsLayout, 0, 3, 1, 2)   
+        mainLayout.addWidget(saveButton, 1, 0, 1, 1)
         mainLayout.addWidget(scanningButton, 1, 2, 1, 2)
+        mainLayout.addWidget(exitButton, 1, 5, 1, 1)
         mainLayout.addWidget(self.outputText, 2, 0, 1, 6)
         
         centralWidget = QtWidgets.QWidget()
@@ -138,40 +134,23 @@ class PortScanner(QMainWindow):
         settingsMenu = mainMenu.addMenu("Settings")
         helpMenu = mainMenu.addMenu("Help")
         aboutMenu = mainMenu.addMenu("About")
-            
-    def TargetIpChanged(self):       
-        self.targetIP = self.targetEdit.text()
-        if self.targetIP == "":
-            return "127.0.0.1"
-        return self.targetIP
-        
-    def TargetPortChanged(self):
-        self.targetPort = self.targetPortEdit.text()
-        if self.targetPort == "":
-            return "1-1024"
-        elif self.targetPort == "*":
-            return "1-65535"
-        return self.targetPort
-        
-    def TargetOsChanged(self):
-        return "not defined"
-    
-    def TimerChanged(self):
-        self.timer = self.timerBox.value()
-        return self.timer
-        
 
     def saveToFile(self):
         filename, _ =QFileDialog.getSaveFileName(self, "Save file", "./", "Text file(*.txt);;All files(*.*)")
         
         if filename:
             with open(filename, "w") as file:
-                #file.write(self.tabs)
-                pass
+                file.write(f"IP address: {self.targetEdit.text()}\n")
+                file.write(f"Ports: {self.targetPortEdit.text()}\n")
+                file.write(f"Timer: {self.timerBox.value()}\n")
+                file.write(f"Scanning starts at {datetime.datetime.now()}")
         
     def startScanning(self):
         self.outputText.clear()
-        self.outputText.append("Start scanning...\n")
+        self.outputText.append(f"<h4><b>IP address:</b> {self.targetEdit.text()}</h4>")
+        self.outputText.append(f"<h4><b>Ports:</b> {self.targetPortEdit.text()}</h4>")
+        self.outputText.append(f"<h4><b>Timer:</b> {self.timerBox.value()}</h4>")
+        self.outputText.append(f"<h4><b>Scanning starts at {datetime.datetime.now()}</b></h4> \n")
 
         self.PortScanner()
         
@@ -181,7 +160,7 @@ class PortScanner(QMainWindow):
         exitBox.setText("Are you really want to exit the application?")
         exitBox.setGeometry(750, 450, 400, 300)
         exitBox.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-        exitBox.setDefaultButton(QMessageBox.No)
+        exitBox.setDefaultButton(QMessageBox.Yes)
         
         result = exitBox.exec_()
         if result == QMessageBox.Yes:
@@ -210,8 +189,8 @@ class PortScanner(QMainWindow):
                 pass
         
     def PortScanner(self):
-        target_ips = self.TargetIpChanged()
-        target_ports = self.TargetPortChanged()
+        target_ips = self.targetEdit.text()
+        target_ports = self.targetPortEdit.text()
         for target in target_ips.split(","):
             try:
                 self.ScanPort(target, target_ports)
