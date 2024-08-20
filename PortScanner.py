@@ -11,11 +11,12 @@ class PortScanner(QMainWindow):
     def __init__(self):
         super().__init__()
         
-        self.background = "#000066"
+        self.background = "708090"
         self.color = "#FFFF33"
         self.targetIp = None
         self.minTargetPort = None
         self.maxTargetPort = None
+        
         self.createMenus()
         self.initUI()
         
@@ -24,25 +25,65 @@ class PortScanner(QMainWindow):
         self.setStyleSheet(f"background-color:{self.background}")
         
     def initUI(self):
-        targetLabel = QLabel("Target IP:")
-        targetLabel.setFont(QFont("Arial", 15))
-        targetLabel.setStyleSheet(f"color: {self.color}")
-        
-        self.targetEdit = QLineEdit()
-        self.targetEdit.setStyleSheet("background-color: white; color: red;")
         ipRange = "(?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])"
         ipRegExp = QRegExp("^" + ipRange + "\\." + ipRange + "\\." + ipRange + "\\." + ipRange + "$")
         ipValidator = QRegExpValidator(ipRegExp, self)
-        self.targetEdit.setValidator(ipValidator)
+
+        targetLayout = QHBoxLayout()
+        targetLayout.setSpacing(20)
         
-        portRange = "([0-9]|[1-9][0-9]|[1-9][0-9][0-9]|[1-9][0-9][0-9][0-9]|[1-5][0-9][0-9][0-9][0-9])"
-        portRegExp = QRegExp("^" + portRange + "\\-" + portRange + "$")
-        portRegExp_f = QRegExp("^" + portRange + " " + portRange + "$")
+        targetLabel = QLabel("IP(s) range:")
+        targetLabel.setFont(QFont("Arial", 15))
+        targetLabel.setStyleSheet(f"color: {self.color}")
+        targetLabel.setAlignment(Qt.AlignLeft)
+        
+        self.targetEdit = QLineEdit()
+        self.targetEdit.setStyleSheet("background-color: white; color: red;")
+        self.targetEdit.setValidator(ipValidator)
+        self.targetEdit.setMaximumWidth(150)
+        #self.targetEdit.setAlignment(Qt.AlignCenter)
+        
+        toLabel = QLabel("to")
+        toLabel.setFont(QFont("Arial", 15))
+        toLabel.setStyleSheet(f"color: {self.color}")
+        toLabel.setAlignment(Qt.AlignLeft)
+
+        self.targetTwoEdit = QLineEdit()
+        self.targetTwoEdit.setStyleSheet("background-color: white; color: red;")
+        self.targetTwoEdit.setValidator(ipValidator)
+        self.targetTwoEdit.setMaximumWidth(150)
+        self.targetTwoEdit.setAlignment(Qt.AlignLeft)
+
+        orLabel = QLabel("or    /")
+        orLabel.setFont(QFont("Arial", 15))
+        orLabel.setStyleSheet(f"color: {self.color}")
+        orLabel.setAlignment(Qt.AlignCenter)
+        orLabel.setAlignment(Qt.AlignLeft)
+
+        self.cidrEdit = QLineEdit()
+        self.cidrEdit.setStyleSheet("background-color: white; color: red;")
+        self.cidrEdit.setValidator(ipValidator)
+        self.cidrEdit.setMaximumWidth(30)
+        self.cidrEdit.setAlignment(Qt.AlignLeft)
+        
+        targetLayout.addWidget(targetLabel)
+        targetLayout.addWidget(self.targetEdit)
+        targetLayout.addWidget(toLabel)
+        targetLayout.addWidget(self.targetTwoEdit)
+        targetLayout.addWidget(orLabel)
+        targetLayout.addWidget(self.cidrEdit)
+
+        portRange = "([0-9]|[1-9][0-9]|[1-9][0-9][0-9]|[1-9][0-9][0-9][0-9]|[1-6][0-9][0-9][0-9][0-9])"
+        portRegExp = QRegExp("^" + portRange + "$")
         portValidator = QRegExpValidator(portRegExp, self)
         
-        targetPortLabel = QLabel("Target ports:")
+        targetPortLabel = QLabel("Target port(s):")
         targetPortLabel.setFont(QFont("Arial", 15))
         targetPortLabel.setStyleSheet(f"color: {self.color}")
+
+        self.targetPortEdit = QLineEdit()
+        self.targetPortEdit.setStyleSheet("background-color: white; color: red;")
+        self.targetPortEdit.setValidator(portValidator)
 
         self.targetPortEdit = QLineEdit()
         self.targetPortEdit.setStyleSheet("background-color: white; color: red;")
@@ -51,44 +92,36 @@ class PortScanner(QMainWindow):
         saveButton = QPushButton("Save to file")
         saveButton.setFont(QFont("Arial", 15))
         saveButton.setStyleSheet("background-color: #CC0000; color: #FFD700;")
-        saveButton.clicked.connect(self.save_to_file)
+        saveButton.clicked.connect(self.saveToFile)
         
         scanningButton = QPushButton("Start scanning")
         scanningButton.setFont(QFont("Arial", 15))
         scanningButton.setStyleSheet("background-color: #FF00FF; color: #FFD700;")
         scanningButton.clicked.connect(self.startScanning)
-        
+
         exitButton = QPushButton("Exit")
         exitButton.setFont(QFont("Arial", 15))
         exitButton.setStyleSheet("background-color: #CC0000; color: #FFD700;")
         exitButton.clicked.connect(self.exitApp)
 
-        self.tabs = QTabWidget()
-        self.tabs.setStyleSheet("background-color: #FFFFFF; color: red;")
+        self.outputText = QTextEdit()
+        self.outputText.setReadOnly(True)
+        self.outputText.setStyleSheet("background-color:white; color: black;")
 
-        self.tab1 = QWidget()
-        self.tabs.addTab(self.tab1, "Target Details")
-        self.tab1_layout = QGridLayout()
-        self.tab1.setLayout(self.tab1_layout)
-
-        self.tab2 = QWidget()
-        self.tabs.addTab(self.tab2, "ScanDetails")
-        self.tab2_layout = QGridLayout()
-        self.tab2.setLayout(self.tab2_layout)
-
-        self.tab3 = QWidget()
-        self.tabs.addTab(self.tab3, "Results")
-        
         mainLayout = QGridLayout()
+        mainLayout.addLayout(targetLayout, 0, 0)
+        '''
         mainLayout.addWidget(targetLabel, 0, 0)
         mainLayout.addWidget(self.targetEdit, 0, 1)
+        mainLayout.addWidget(toLabel, 0, 2)
+        mainLayout.addWidget(self.targetTwoEdit, 0, 3)
         mainLayout.addWidget(targetPortLabel, 1, 0)
         mainLayout.addWidget(self.targetPortEdit, 1, 1)
-        mainLayout.addWidget(saveButton, 3, 0, 1, 1)
-        mainLayout.addWidget(scanningButton, 3, 1, 1, 1)
-        mainLayout.addWidget(exitButton, 3, 2, 1, 1)
-        mainLayout.addWidget(self.tabs, 4, 0, 1, 3)
-        
+        mainLayout.addWidget(saveButton, 3, 0)
+        mainLayout.addWidget(scanningButton, 3, 1)
+        mainLayout.addWidget(exitButton, 3, 2)
+        mainLayout.addWidget(self.outputText, 4, 0, 1, 3)
+        '''
         centralWidget = QtWidgets.QWidget()
         centralWidget.setLayout(mainLayout)
         self.setCentralWidget(centralWidget)
@@ -100,7 +133,7 @@ class PortScanner(QMainWindow):
         settingsMenu = mainMenu.addMenu("Settings")
         helpMenu = mainMenu.addMenu("Help")
         aboutMenu = mainMenu.addMenu("About")
-    
+            
     def TargetIpChanged(self):       
         self.targetIP = self.targetEdit.text()
         if self.targetIP == "":
@@ -113,13 +146,12 @@ class PortScanner(QMainWindow):
             return "1-1024"
         elif self.targetPort == "*":
             return "1-65535"
-        else:
-            return self.targetPort
+        return self.targetPort
         
     def TargetOsChanged(self):
         return "not defined"
     
-    def save_to_file(self):
+    def saveToFile(self):
         filename, _ =QFileDialog.getSaveFileName(self, "Save file", "./", "Text file(*.txt);;All files(*.*)")
         
         if filename:
@@ -128,32 +160,8 @@ class PortScanner(QMainWindow):
                 pass
         
     def startScanning(self):
-        #self.tabs.clear()
-
-        targetIP = QLabel(f"Target IPs: {self.TargetIpChanged()}")
-        targetIP.setFont(QFont("Arial", 15))
-        targetIP.setAlignment(Qt.AlignLeft)
-
-        targetPort = QLabel(f"Target Ports: {self.TargetPortChanged()}")
-        targetPort.setFont(QFont("Arial", 15))
-        targetPort.setAlignment(Qt.AlignLeft)
-
-        targetOs = QLabel(f"Target OS: {self.TargetOsChanged()}")
-        targetOs.setFont(QFont("Arial", 15))
-        targetOs.setAlignment(Qt.AlignLeft)
-
-        self.tab1_layout.addWidget(targetIP, 0, 0)
-        self.tab1_layout.addWidget(targetPort, 1, 0)
-        self.tab1_layout.addWidget(targetOs, 2, 0)
-
-        now = datetime.now().strftime("%H:%M:%S")
-        today = date.today()
-
-        timeLabel = QLabel(f"Scanning begins at {now} {today}")
-        timeLabel.setFont(QFont("Arial", 15))
-        timeLabel.setAlignment(Qt.AlignLeft)
-
-        self.tab2_layout.addWidget(timeLabel, 0, 0)
+        self.outputText.clear()
+        self.outputText.append("Start scanning...\n")
 
         self.PortScanner()
         
@@ -168,12 +176,8 @@ class PortScanner(QMainWindow):
         result = exitBox.exec_()
         if result == QMessageBox.Yes:
             sys.exit(0)
-        
+
     def ScanPort(self, target:str, ports:str):
-        startLabel = QLabel("Port     Status")
-        startLabel.setAlignment(Qt.AlignLeft)
-        startLabel.setFont(QFont("Arial", 15))
-        self.tab2_layout.addWidget(startLabel, 1, 0)
 
         if "-" in ports:
             ports = ports.split("-")
@@ -181,10 +185,7 @@ class PortScanner(QMainWindow):
                 try:
                     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     sock.connect((target, port))
-                    portLabel = QLabel(f"{port}        open")
-                    portLabel.setAlignment(Qt.AlignLeft)
-                    portLabel.setFont(QFont("Arial", 15))
-                    self.tab2_layout.addWidget(portLabel)
+                    self.outputText.append(f"{port}     open")
                     sock.close()
                 except:
                     pass
@@ -192,10 +193,7 @@ class PortScanner(QMainWindow):
             try:
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 sock.connect((target, int(ports)))
-                portLabel = QLabel(f"{ports}        open")
-                portLabel.setAlignment(Qt.AlignLeft)
-                portLabel.setFont(QFont("Arial", 15))
-                self.tab2_layout.addWidget(portLabel)
+                self.outputText.append(f"{ports}        open")
                 sock.close()
             except:
                 pass
