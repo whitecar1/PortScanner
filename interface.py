@@ -183,22 +183,20 @@ class PortScannerInterFace(QMainWindow):
         self.outputText.append(f"<h4><b>Scanning starts at {datetime.datetime.now()}</b></h4> \n")
 
         headers = ["Port\t", "Status\t", "Service\t", "Version\t"]
+        results = scanner.PortScanner(self.targetEdit.text(), self.targetPortEdit.text())
         self.cursor = QTextCursor()
         self.cursor = self.outputText.textCursor()
-        self.cursor.insertTable(10, len(headers))
+        self.cursor.insertTable(len(results)+1, len(headers))
 
         for header in headers:
             self.cursor.insertText(header)
             self.cursor.movePosition(QTextCursor.NextCell)
 
-    def addValueToTable(self, port, service, status="open"):
-        self.outputText.insertText(str(port))
-        self.outputText.movePosition(QTextCursor.NextCell)
-        self.outputText.insertText(status)
-        self.outputText.movePosition(QTextCursor.NextCell)
-        self.outputText.insertText(service)
-        self.outputText.movePosition(QTextCursor.NextCell)
-        self.outputText.movePosition(QTextCursor.NextCell)
-        
-    def target(self):
-        return self.targetEdit.text(), self.targetPortEdit(), self.timerBox.value()
+        for i in range(len(results)):
+            self.cursor.insertText(str(results[i][0]))
+            self.cursor.movePosition(QTextCursor.NextCell)
+            self.cursor.insertText(results[i][1])
+            self.cursor.movePosition(QTextCursor.NextCell)
+            self.cursor.insertText(results[i][2])
+            self.cursor.movePosition(QTextCursor.NextCell)
+            self.cursor.movePosition(QTextCursor.NextCell)
