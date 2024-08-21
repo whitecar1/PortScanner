@@ -9,6 +9,8 @@ import socket
 import time
 import datetime
 
+import methods
+
 class PortScanner(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -82,9 +84,16 @@ class PortScanner(QMainWindow):
         self.timerBox.setRange(5, 60)
         self.timerBox.setSingleStep(1)
 
+        tcpScan = QRadioButton("TCP scanning")
+
+        udpScan = QRadioButton("UDP scanning")
+        udpScan.toggled.connect(self.isUDP)
+
         optionsVLayout = QGridLayout()
         optionsVLayout.addWidget(timerLabel, 0, 0, 1, 1)
         optionsVLayout.addWidget(self.timerBox, 0, 1, 1, 1)
+        optionsVLayout.addWidget(tcpScan, 2, 0, 1, 1)
+        optionsVLayout.addWidget(udpScan, 2, 1, 1, 1)
 
         optionsFrame = QFrame()
         optionsFrame.setFrameShape(QFrame.Box)
@@ -104,6 +113,7 @@ class PortScanner(QMainWindow):
         scanningButton.setFont(QFont("Times", 15))
         scanningButton.setStyleSheet(f"background-color: #FF00FF; color: {self.color};")
         scanningButton.clicked.connect(self.startScanning)
+        scanningButton.setShortcut("Ctrl+B")    
 
         exitButton = QPushButton("Exit")
         exitButton.setFont(QFont("Times", 15))
@@ -140,17 +150,28 @@ class PortScanner(QMainWindow):
         
         if filename:
             with open(filename, "w") as file:
-                file.write(f"IP address: {self.targetEdit.text()}\n")
-                file.write(f"Ports: {self.targetPortEdit.text()}\n")
-                file.write(f"Timer: {self.timerBox.value()}\n")
-                file.write(f"Scanning starts at {datetime.datetime.now()}")
-        
+                file.write("\tInformation about scanning:")
+                file.write(f"1. IP address: {self.targetEdit.text()}\n")
+                file.write(f"2. Ports: {self.targetPortEdit.text()}\n")
+                file.write(f"3. Timer: {self.timerBox.value()}\n")
+                file.write(f"4. Scanning starts at {datetime.datetime.now()}")
+
     def startScanning(self):
         self.outputText.clear()
         self.outputText.append(f"<h4><b>IP address:</b> {self.targetEdit.text()}</h4>")
         self.outputText.append(f"<h4><b>Ports:</b> {self.targetPortEdit.text()}</h4>")
         self.outputText.append(f"<h4><b>Timer:</b> {self.timerBox.value()}</h4>")
         self.outputText.append(f"<h4><b>Scanning starts at {datetime.datetime.now()}</b></h4> \n")
+
+        headers = ["Port\t", "Status\t", "Service\t"]
+        global ROWS
+        self.cursor = QTextCursor()
+        self.cursor = self.outputText.textCursor()
+        self.cursor.insertTable(10, 3)
+
+        for header in headers:
+            self.cursor.insertText(header)
+            self.cursor.movePosition(QTextCursor.NextCell)
 
         self.PortScanner()
         
@@ -166,24 +187,33 @@ class PortScanner(QMainWindow):
         if result == QMessageBox.Yes:
             sys.exit(0)
 
-    def ScanPort(self, target:str, ports:str):
+    def isUDP(self):
+        return True
 
+    def ScanPort(self, target:str, ports:str):
         if "-" in ports:
             ports = ports.split("-")
             for port in range(int(ports[0]), int(ports[1])+1):
                 try:
                     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     sock.connect((target, port))
-                    self.outputText.append(f"{port}     open")
+                    methods.addValueToTable(self.cursor, port)
+                    '''
+                    self.cursor.insertText(str(port))
+                    self.cursor.movePosition(QTextCursor.NextCell)
+                    self.cursor.insertText("open")
+                    self.cursor.movePosition(QTextCursor.NextCell)
+                    self.cursor.movePosition(QTextCursor.NextCell)
+                    '''
                     sock.close()
-                    time.sleep(self.timer)
+                    #time.sleep(self.timer)
                 except:
                     pass
         else:
             try:
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 sock.connect((target, int(ports)))
-                self.outputText.append(f"{ports}        open")
+                methods.addValueToTable(self.cursor, ports)
                 sock.close()
             except:
                 pass
