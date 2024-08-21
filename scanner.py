@@ -24,7 +24,6 @@ def ScanPort(target:str, ports:str, results):
                 service = socket.getservbyport(port)
                 results.append([port, "open", service])
                 sock.close()
-                    #time.sleep(timer)
             except:
                 pass
     else:

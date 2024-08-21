@@ -52,7 +52,8 @@ class PortScannerInterFace(QMainWindow):
         targetLayout.setSpacing(20)
 
         ipRange = "(?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])"
-        ipRegExp = QRegExp("^" + ipRange + "\\." + ipRange + "\\." + ipRange + "\\." + ipRange + "\\/" + ipRange + "$")
+        ipRegExp = QRegExp("^" + ipRange + "\\." + ipRange + "\\." + ipRange + "\\." + ipRange + "(?:," + ipRange + "\\." + ipRange + "\\." 
+        + ipRange + "\\." + ipRange + "|\\-" + ipRange + "\\." + ipRange + "\\." + ipRange + "\\." + ipRange + "|/[0-9]?[0-9])?$")
         ipValidator = QRegExpValidator(ipRegExp, self)
         
         targetLabel = QLabel("IP address:")
@@ -134,6 +135,7 @@ class PortScannerInterFace(QMainWindow):
         saveButton.setFont(QFont("Times", 15))
         saveButton.setStyleSheet(f"background-color: #FF00FF; color: {self.color}")
         saveButton.clicked.connect(self.saveToFile)
+        saveButton.setShortcut("Ctrl+S")
 
         scanningButton = QPushButton("Start scanning")
         scanningButton.setFont(QFont("Times", 15))
@@ -145,6 +147,7 @@ class PortScannerInterFace(QMainWindow):
         exitButton.setFont(QFont("Times", 15))
         exitButton.setStyleSheet(f"background-color: #FF00FF; color: {self.color}")
         exitButton.clicked.connect(self.exitApp)
+        exitButton.setShortcut("Ctrl+Q")
 
         self.outputText = QTextEdit()
         self.outputText.setReadOnly(True)
@@ -157,11 +160,13 @@ class PortScannerInterFace(QMainWindow):
         
         if filename:
             with open(filename, "w") as file:
-                file.write("\tInformation about scanning:")
+                file.write("\tInformation about scanning:\n")
                 file.write(f"1. IP address: {self.targetEdit.text()}\n")
                 file.write(f"2. Ports: {self.targetPortEdit.text()}\n")
                 file.write(f"3. Timer: {self.timerBox.value()}\n")
                 file.write(f"4. Scanning starts at {datetime.datetime.now()}")
+                file.write("Port\tStatus\tService\tVersion")
+                
                 
     def exitApp(self):
         exitBox = QMessageBox()
