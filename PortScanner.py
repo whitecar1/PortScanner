@@ -18,15 +18,38 @@ class PortScanner(QMainWindow):
         self.background = "708090"
         self.color = "#FFFF33"
 
-        self.createMenus()
         self.initUI()
         
+    def initUI(self):
         self.setWindowTitle("PortScanner")
         self.setGeometry(360, 170, 1200, 800)
-        #dself.setStyleSheet(f"background-color:{self.background}")
-        
-    def initUI(self):
 
+        self.createMenus()
+        targetData = self.initTargetAndStart()
+        optionsData = self.initOptions()
+        save, start, close, output = self.createButtons()
+
+        mainLayout = QGridLayout()
+        mainLayout.addLayout(targetData, 0, 1, 1, 2)  
+        mainLayout.addLayout(optionsData, 0, 3, 1, 2)   
+        mainLayout.addWidget(save, 1, 0, 1, 1)
+        mainLayout.addWidget(start, 1, 2, 1, 2)
+        mainLayout.addWidget(close, 1, 5, 1, 1)
+        mainLayout.addWidget(output, 2, 0, 1, 6)
+        
+        centralWidget = QtWidgets.QWidget()
+        centralWidget.setLayout(mainLayout)
+        self.setCentralWidget(centralWidget)
+
+    def createMenus(self):
+        mainMenu = self.menuBar()
+        mainMenu.setStyleSheet("color: red; background-color: #FFFFFF")
+        fileMenu = mainMenu.addMenu("File")
+        settingsMenu = mainMenu.addMenu("Settings")
+        helpMenu = mainMenu.addMenu("Help")
+        aboutMenu = mainMenu.addMenu("About")
+
+    def initTargetAndStart(self):
         targetLayout = QGridLayout()
         targetLayout.setSpacing(20)
 
@@ -74,6 +97,9 @@ class PortScanner(QMainWindow):
 
         targetLayout.addWidget(targetFrame, 0, 0, 1, 2)
 
+        return targetLayout
+
+    def initOptions(self):
         optionsLayout = QGridLayout()
 
         timerLabel = QLabel("Timer")
@@ -104,6 +130,9 @@ class PortScanner(QMainWindow):
 
         optionsLayout.addWidget(optionsFrame, 0, 0, 1, 2)
 
+        return optionsLayout
+
+    def createButtons(self):
         saveButton = QPushButton("Save to file")
         saveButton.setFont(QFont("Times", 15))
         saveButton.setStyleSheet(f"background-color: #FF00FF; color: {self.color}")
@@ -124,26 +153,7 @@ class PortScanner(QMainWindow):
         self.outputText.setReadOnly(True)
         self.outputText.setStyleSheet("background-color:white; color: black;")
 
-        mainLayout = QGridLayout()
-        
-        mainLayout.addLayout(targetLayout, 0, 1, 1, 2)  
-        mainLayout.addLayout(optionsLayout, 0, 3, 1, 2)   
-        mainLayout.addWidget(saveButton, 1, 0, 1, 1)
-        mainLayout.addWidget(scanningButton, 1, 2, 1, 2)
-        mainLayout.addWidget(exitButton, 1, 5, 1, 1)
-        mainLayout.addWidget(self.outputText, 2, 0, 1, 6)
-        
-        centralWidget = QtWidgets.QWidget()
-        centralWidget.setLayout(mainLayout)
-        self.setCentralWidget(centralWidget)
-
-    def createMenus(self):
-        mainMenu = self.menuBar()
-        mainMenu.setStyleSheet("color: red; background-color: #FFFFFF")
-        fileMenu = mainMenu.addMenu("File")
-        settingsMenu = mainMenu.addMenu("Settings")
-        helpMenu = mainMenu.addMenu("Help")
-        aboutMenu = mainMenu.addMenu("About")
+        return saveButton, scanningButton, exitButton, self.outputText
 
     def saveToFile(self):
         filename, _ =QFileDialog.getSaveFileName(self, "Save file", "./", "Text file(*.txt);;All files(*.*)")
@@ -198,15 +208,8 @@ class PortScanner(QMainWindow):
                     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     sock.connect((target, port))
                     methods.addValueToTable(self.cursor, port)
-                    '''
-                    self.cursor.insertText(str(port))
-                    self.cursor.movePosition(QTextCursor.NextCell)
-                    self.cursor.insertText("open")
-                    self.cursor.movePosition(QTextCursor.NextCell)
-                    self.cursor.movePosition(QTextCursor.NextCell)
-                    '''
                     sock.close()
-                    #time.sleep(self.timer)
+                    time.sleep(self.timer)
                 except:
                     pass
         else:
