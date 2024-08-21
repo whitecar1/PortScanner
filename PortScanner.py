@@ -173,11 +173,11 @@ class PortScanner(QMainWindow):
         self.outputText.append(f"<h4><b>Timer:</b> {self.timerBox.value()}</h4>")
         self.outputText.append(f"<h4><b>Scanning starts at {datetime.datetime.now()}</b></h4> \n")
 
-        headers = ["Port\t", "Status\t", "Service\t"]
+        headers = ["Port\t", "Status\t", "Service\t", "Version\t"]
         global ROWS
         self.cursor = QTextCursor()
         self.cursor = self.outputText.textCursor()
-        self.cursor.insertTable(10, 3)
+        self.cursor.insertTable(10, len(headers))
 
         for header in headers:
             self.cursor.insertText(header)
@@ -207,7 +207,8 @@ class PortScanner(QMainWindow):
                 try:
                     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     sock.connect((target, port))
-                    methods.addValueToTable(self.cursor, port)
+                    service = socket.getservbyport(port)
+                    methods.addValueToTable(self.cursor, port, service)
                     sock.close()
                     time.sleep(self.timer)
                 except:
@@ -216,7 +217,8 @@ class PortScanner(QMainWindow):
             try:
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 sock.connect((target, int(ports)))
-                methods.addValueToTable(self.cursor, ports)
+                service = socket.getservbyport(int(ports))
+                methods.addValueToTable(self.cursor, ports, service)
                 sock.close()
             except:
                 pass
